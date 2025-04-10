@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import * as faceapi from 'face-api.js';
-import { Camera, Heart, Music, Mic } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Camera, Heart, Music, Mic, XCircle } from 'lucide-react';
 
 const EmotionAnalysisPage = () => {
+  // State declarations
   const [step, setStep] = useState(1);
   const [image, setImage] = useState(null);
   const [emotion, setEmotion] = useState(null);
@@ -11,304 +10,330 @@ const EmotionAnalysisPage = () => {
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [videoStream, setVideoStream] = useState(null);
-  const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [modelLoading, setModelLoading] = useState(false);
   const [audioTranscript, setAudioTranscript] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [spotifyRecommendations, setSpotifyRecommendations] = useState([]);
+  const [breathingExercises, setBreathingExercises] = useState([]);
+  const [error, setError] = useState(null);
+  const [cameraError, setCameraError] = useState(null);
+  const [recognitionError, setRecognitionError] = useState(null);
+  const [showCanvas, setShowCanvas] = useState(false);
+  
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const recognitionRef = useRef(null);
 
-  // Emotion labels mapped to face-api expressions
   const EMOTIONS = ['happy', 'sad', 'angry', 'neutral', 'surprised', 'fearful'];
 
-  // Load face-api.js models
+  // Speech recognition setup
   useEffect(() => {
-    const loadModels = async () => {
+    const initSpeechRecognition = () => {
       try {
-        setModelLoading(true);
-        
-        // Set the models path 
-        const MODEL_URL = '/models';
-        
-        // Load required face-api models
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
-        ]);
-        
-        console.log('Face-api.js models loaded successfully');
-        setModelsLoaded(true);
-        setModelLoading(false);
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = 'en-US';
+          
+          recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const transcript = event.results[i][0].transcript;
+              if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+              } else {
+                interimTranscript += transcript;
+              }
+            }
+            
+            if (finalTranscript) {
+              setAudioTranscript(prev => prev + finalTranscript);
+            }
+          };
+          
+          recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            setIsRecording(false);
+            setRecognitionError(event.error);
+          };
+          
+          recognitionRef.current = recognition;
+        } else {
+          setRecognitionError("Speech recognition not supported in this browser");
+        }
       } catch (error) {
-        console.error("Error loading face-api models:", error);
-        setModelLoading(false);
-        alert("Error loading face detection models. Please try refreshing the page.");
+        console.error("Error initializing speech recognition:", error);
+        setRecognitionError(error.message);
       }
     };
 
-    loadModels();
-
-    // Initialize speech recognition
-    try {
-      if (window.SpeechRecognition) {
-        recognitionRef.current = new window.SpeechRecognition();
-      } else if (window.webkitSpeechRecognition) {
-        recognitionRef.current = new window.webkitSpeechRecognition();
-      } else {
-        console.warn("Speech recognition not supported in this browser");
-      }
-      
-      if (recognitionRef.current) {
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.onresult = (event) => {
-          const transcript = Array.from(event.results)
-            .map(result => result[0])
-            .map(result => result.transcript)
-            .join('');
-          setAudioTranscript(transcript);
-        };
-        
-        recognitionRef.current.onerror = (event) => {
-          console.error("Speech recognition error", event.error);
-          setIsRecording(false);
-        };
-      }
-    } catch (error) {
-      console.error("Error initializing speech recognition:", error);
-    }
-
+    initSpeechRecognition();
     return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-      }
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
         } catch (e) {
-          console.error("Error stopping speech recognition:", e);
+          console.error("Error stopping recognition:", e);
         }
+      }
+      
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
 
-  // Start camera
+  // Toggle recording state
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsRecording(true);
+        setRecognitionError(null);
+      } catch (error) {
+        console.error("Error starting recording:", error);
+        setRecognitionError(`Could not start recording: ${error.message}`);
+      }
+    }
+  };
+
+  // Camera handling
   const startCamera = async () => {
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Your browser doesn't support camera access or it's blocked");
-        return;
-      }
-
+      setCameraError(null);
+      setError(null);
+      
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' }
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
       
       setVideoStream(stream);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        
-        // Make sure video autoplay works using a promise
-        await new Promise((resolve, reject) => {
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play()
-              .then(resolve)
-              .catch(e => {
-                console.error("Error playing video:", e);
-                alert("Error accessing camera. Please check browser permissions.");
-                reject(e);
-              });
-          };
-          
-          // Timeout in case onloadedmetadata never fires
-          setTimeout(() => {
-            if (videoRef.current.readyState >= 2) {
-              videoRef.current.play()
-                .then(resolve)
-                .catch(reject);
-            } else {
-              reject(new Error("Video metadata loading timeout"));
-            }
-          }, 3000);
-        });
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play();
+        };
       }
     } catch (err) {
       console.error("Camera error:", err);
-      alert(`Camera access error: ${err.message}. Please check your browser permissions.`);
+      setCameraError(err.message);
     }
   };
 
-  // Capture image and detect emotion
+  // Image capture and analysis
   const captureAndPredict = async () => {
-    if (!videoRef.current || !modelsLoaded || !canvasRef.current) {
-      alert("Camera or models not ready. Please try again.");
+    if (!videoRef.current) {
+      setError("Video not ready. Please enable camera first.");
       return;
     }
 
     setIsLoading(true);
+    setError(null);
+    
     try {
       const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      // Ensure video is playing and has dimensions
-      if (video.paused || video.videoWidth === 0 || video.videoHeight === 0) {
-        await video.play();
-        // Short delay to ensure video is ready
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
       
       // Set canvas dimensions to match video
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      
-      // Draw current video frame to canvas
-      const context = canvas.getContext('2d');
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Save the image first before proceeding
-      const capturedImage = canvas.toDataURL('image/jpeg');
-      setImage(capturedImage);
-      
-      // Detect face and expressions
-      const detections = await faceapi.detectSingleFace(
-        video, 
-        new faceapi.TinyFaceDetectorOptions()
-      ).withFaceExpressions();
-      
-      if (detections) {
-        // Get the dominant expression
-        const expressions = detections.expressions;
-        console.log("Detected expressions:", expressions);
+      if (canvasRef.current) {
+        canvasRef.current.width = video.videoWidth;
+        canvasRef.current.height = video.videoHeight;
         
-        let dominantExpression = Object.keys(expressions).reduce(
-          (a, b) => expressions[a] > expressions[b] ? a : b
-        );
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height);
         
-        // Map face-api expressions to our emotion labels
-        const expressionMap = {
-          'happy': 'happy',
-          'sad': 'sad', 
-          'angry': 'angry',
-          'neutral': 'neutral',
-          'surprised': 'surprised',
-          'fearful': 'fearful',
-          'disgusted': 'angry' // Map disgusted to angry since it's close
-        };
+        const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
+        setImage(imageDataUrl);
+        setShowCanvas(true);
+
+        const base64Image = imageDataUrl.split(',')[1];
+        const detectedEmotion = await analyzeImageWithGemini(base64Image);
         
-        const mappedEmotion = expressionMap[dominantExpression] || 'neutral';
-        setEmotion(mappedEmotion);
-        
-        // Draw expression results on canvas (optional - for visualization)
-        context.font = '16px Arial';
-        context.fillStyle = 'red';
-        context.fillText(`Emotion: ${mappedEmotion}`, 10, 30);
-      } else {
-        // No face detected
-        console.log("No face detected in the image");
-        alert("No face detected. Please ensure your face is clearly visible.");
-        setEmotion('neutral'); // Default to neutral if no face found
+        if (detectedEmotion) {
+          setEmotion(detectedEmotion);
+          // Add text to the canvas
+          ctx.font = 'bold 24px Arial';
+          ctx.fillStyle = '#FF0000';
+          ctx.fillText(`Detected: ${detectedEmotion}`, 20, 40);
+        } else {
+          setEmotion(null);
+          setError("No clear emotion detected. Please ensure your face is visible.");
+        }
       }
     } catch (error) {
-      console.error("Error in capture and predict:", error);
-      alert("Error processing image. Please try again.");
+      console.error("Capture error:", error);
+      setError(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Toggle voice recording
-  const toggleRecording = () => {
-    if (!recognitionRef.current) {
-      alert('Speech recognition not supported in your browser. Try Chrome or Edge.');
-      return;
-    }
-
+  // Gemini API call for image analysis
+  const analyzeImageWithGemini = async (base64Data) => {
     try {
-      if (isRecording) {
-        recognitionRef.current.stop();
-        setIsRecording(false);
-      } else {
-        recognitionRef.current.start();
-        setIsRecording(true);
+      const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: "Analyze this facial expression. Respond ONLY with one word from: happy, sad, angry, neutral, surprised, fearful." },
+              { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+            ]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API error: ${errorData.error?.message || response.status}`);
       }
+      
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0]?.content?.parts?.length) {
+        throw new Error("Invalid response format from Gemini API");
+      }
+      
+      const emotionText = data.candidates[0].content.parts[0].text.toLowerCase().trim();
+      // Extract just the emotion word (in case API returns more text)
+      for (const emotion of EMOTIONS) {
+        if (emotionText.includes(emotion)) {
+          return emotion;
+        }
+      }
+      return 'neutral'; // Default if no match found
     } catch (error) {
-      console.error("Error toggling speech recognition:", error);
-      setIsRecording(false);
-      alert("Error with speech recognition. Please try again.");
+      console.error("Gemini analysis error:", error);
+      setError(`Emotion analysis failed: ${error.message}`);
+      return null;
     }
   };
 
-  // Submit for analysis
+  // Text/voice analysis
   const submitForAnalysis = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // Combine visual and text input for better analysis
       const inputText = userText || audioTranscript || "";
-      const combinedInput = `Visual emotion: ${emotion || 'unknown'}. User description: ${inputText}`;
+      const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simple response logic based on combined input
-      let response = "Thank you for sharing how you're feeling.";
-      if (combinedInput.toLowerCase().includes('happy') || combinedInput.toLowerCase().includes('good')) {
-        response = "I'm glad to see you're feeling positive! Keep up the good mood!";
-      } else if (combinedInput.toLowerCase().includes('sad') || combinedInput.toLowerCase().includes('bad')) {
-        response = "I notice you might be feeling down. Remember that tough times pass.";
-      } else if (combinedInput.toLowerCase().includes('angry') || combinedInput.toLowerCase().includes('mad')) {
-        response = "I sense some frustration. Let's take some deep breaths together.";
-      } else if (combinedInput.toLowerCase().includes('neutral')) {
-        response = "You seem to be in a balanced state right now.";
-      } else if (combinedInput.toLowerCase().includes('surprised')) {
-        response = "Something seems to have caught you by surprise!";
-      } else if (combinedInput.toLowerCase().includes('fearful')) {
-        response = "I sense some anxiety or fear. Remember that you're safe right now.";
+      const promptText = `
+Analyze this emotional state:
+- Visual emotion: ${emotion || 'unknown'}
+- User description: "${inputText}"
+
+Provide a response in the following JSON format ONLY with no additional text:
+{
+  "message": "A supportive message (1-2 sentences)",
+  "breathingExercises": [
+    {
+      "name": "Exercise name",
+      "steps": ["Step 1", "Step 2", "Step 3"],
+      "duration": "Duration information"
+    },
+    {
+      "name": "Second exercise name",
+      "steps": ["Step 1", "Step 2", "Step 3"],
+      "duration": "Duration information"
+    }
+  ],
+  "musicGenres": ["Genre 1", "Genre 2", "Genre 3"],
+  "spotifyPlaylists": ["Playlist name 1", "Playlist name 2", "Playlist name 3"]
+}`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: promptText }]
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API error: ${errorData.error?.message || response.status}`);
       }
       
-      setAiResponse(response);
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0]?.content?.parts?.length) {
+        throw new Error("Invalid response format from Gemini API");
+      }
+      
+      const responseText = data.candidates[0].content.parts[0].text;
+      
+      // Extract JSON content - handle potential text before/after JSON
+      let jsonMatch = responseText.match(/(\{[\s\S]*\})/);
+      if (!jsonMatch) {
+        throw new Error("Could not find valid JSON in the response");
+      }
+      
+      const jsonString = jsonMatch[0];
+      const result = JSON.parse(jsonString);
+
+      setAiResponse(result.message);
+      setBreathingExercises(result.breathingExercises || []);
+      setSpotifyRecommendations((result.spotifyPlaylists || []).map((name, i) => ({
+        name,
+        genre: result.musicGenres?.[i] || "General",
+        url: `https://open.spotify.com/search/${encodeURIComponent(name)}`
+      })));
+      
       setStep(3);
     } catch (error) {
-      console.error("Error:", error);
-      setAiResponse("We encountered an error. Please try again later.");
+      console.error("Analysis error:", error);
+      setError(`Error processing your request: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Breathing exercises
-  const breathingExercises = [
-    {
-      name: "Box Breathing",
-      steps: ["Breathe in for 4", "Hold for 4", "Exhale for 4", "Wait for 4"],
-      duration: "5 minutes"
-    },
-    {
-      name: "4-7-8 Breathing",
-      steps: ["Breathe in for 4", "Hold for 7", "Exhale for 8"],
-      duration: "4 cycles"
+  // Reset application state
+  const resetApp = () => {
+    setStep(1);
+    setEmotion(null);
+    setUserText('');
+    setAiResponse('');
+    setImage(null);
+    setAudioTranscript('');
+    setSpotifyRecommendations([]);
+    setBreathingExercises([]);
+    setError(null);
+    setCameraError(null);
+    setRecognitionError(null);
+    setShowCanvas(false);
+    
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      setVideoStream(null);
     }
-  ];
-
-  // Music recommendations
-  const musicRecommendations = {
-    happy: ["Upbeat Pop", "Dance Mix", "Cheerful Indie"],
-    sad: ["Calming Piano", "Soothing Strings", "Acoustic Ballads"],
-    angry: ["Nature Sounds", "Classical", "Ambient Soundscapes"],
-    neutral: ["Chill Vibes", "Ambient", "Lo-fi Beats"],
-    surprised: ["Instrumental", "Cinematic", "New Age"],
-    fearful: ["Meditation", "White Noise", "Gentle Classical"]
+    
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        console.error("Error stopping recognition:", e);
+      }
+    }
+    
+    setIsRecording(false);
   };
 
-  // Safe fallback for music recommendations
-  const getMusicRecommendations = () => {
-    if (emotion && musicRecommendations[emotion]) {
-      return musicRecommendations[emotion];
-    }
-    return ["Calming Piano", "Ambient Sounds", "Nature Music"];
-  };
-
+  // UI rendering
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -316,9 +341,25 @@ const EmotionAnalysisPage = () => {
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Emotion Wellness Check</h1>
           <p className="text-lg text-gray-600">
-            Share how you're feeling through images, voice, or text
+            Share your feelings through images, voice, or text
           </p>
         </div>
+
+        {/* Error Display */}
+        {(error || cameraError || recognitionError) && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <XCircle className="h-5 w-5 text-red-500" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">
+                  {error || cameraError || recognitionError}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Progress Steps */}
         <div className="flex justify-between mb-12">
@@ -335,13 +376,9 @@ const EmotionAnalysisPage = () => {
           ))}
         </div>
 
-        {/* Step 1: Expression Capture */}
+        {/* Step 1: Camera Capture */}
         {step === 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-md"
-          >
+          <div className="bg-white p-8 rounded-xl shadow-md">
             <h2 className="text-xl font-semibold mb-6 flex items-center">
               <Camera className="mr-2" /> Capture Your Expression
             </h2>
@@ -351,23 +388,24 @@ const EmotionAnalysisPage = () => {
                 <div className="bg-gray-100 aspect-video flex items-center justify-center rounded-lg">
                   <button 
                     onClick={startCamera}
-                    disabled={modelLoading}
-                    className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg flex items-center disabled:bg-gray-300"
+                    className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg flex items-center"
                   >
-                    <Camera className="mr-2" /> 
-                    {modelLoading ? 'Loading Models...' : 'Enable Camera'}
+                    <Camera className="mr-2" /> Enable Camera
                   </button>
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
                   <video 
                     ref={videoRef}
                     autoPlay
                     playsInline
                     muted
-                    className="w-full rounded-lg border border-gray-200"
+                    className={`w-full h-full object-cover ${showCanvas ? 'hidden' : 'block'}`}
                   />
-                  <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
+                  <canvas 
+                    ref={canvasRef}
+                    className={`w-full h-full object-cover ${showCanvas ? 'block' : 'hidden'}`}
+                  />
                 </div>
               )}
             </div>
@@ -376,44 +414,53 @@ const EmotionAnalysisPage = () => {
               {videoStream && (
                 <button
                   onClick={captureAndPredict}
-                  disabled={isLoading || !modelsLoaded}
+                  disabled={isLoading}
                   className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:bg-blue-300"
                 >
                   {isLoading ? 'Processing...' : 'Capture & Analyze'}
                 </button>
               )}
               
+              {showCanvas && (
+                <button
+                  onClick={() => {
+                    setShowCanvas(false);
+                    if (canvasRef.current) {
+                      const ctx = canvasRef.current.getContext('2d');
+                      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                    }
+                  }}
+                  className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                >
+                  Retake Photo
+                </button>
+              )}
+              
               <button
                 onClick={() => setStep(2)}
+                disabled={isLoading}
                 className={`px-6 py-2 rounded-lg ${emotion ? 'bg-teal-500 hover:bg-teal-600 text-white' : 'bg-gray-200 text-gray-500'}`}
               >
                 {emotion ? 'Next' : 'Skip to Text Input'}
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
-        {/* Step 2 and 3 remain the same as in your original code */}
-        {/* ... Rest of your component remains unchanged ... */}
-        
-        {/* Step 2: Description */}
+        {/* Step 2: Description Input */}
         {step === 2 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-md"
-          >
+          <div className="bg-white p-8 rounded-xl shadow-md">
             <h2 className="text-xl font-semibold mb-6">Describe Your Feelings</h2>
             
             {image && (
-              <div className="mb-6 flex justify-center">
+              <div className="mb-6 flex items-center justify-center">
                 <img 
                   src={image} 
                   alt="Captured expression" 
                   className="h-32 rounded-lg border border-gray-200"
                 />
                 {emotion && (
-                  <div className="ml-4 self-center bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="ml-4 bg-gray-100 px-4 py-2 rounded-full text-sm font-medium">
                     Detected: {emotion}
                   </div>
                 )}
@@ -421,24 +468,18 @@ const EmotionAnalysisPage = () => {
             )}
             
             <div className="mb-6">
-              <label htmlFor="feeling" className="block text-sm font-medium text-gray-700 mb-2">
-                How are you feeling today?
-              </label>
               <textarea
-                id="feeling"
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-                placeholder="I'm feeling..."
                 value={userText}
                 onChange={(e) => setUserText(e.target.value)}
+                placeholder="Describe your feelings..."
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+                rows={4}
               />
             </div>
             
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Or speak your feelings
-                </label>
+                <span className="text-sm font-medium">Voice Input</span>
                 <button
                   onClick={toggleRecording}
                   className={`flex items-center text-sm ${isRecording ? 'text-red-500' : 'text-teal-600'}`}
@@ -447,8 +488,8 @@ const EmotionAnalysisPage = () => {
                   {isRecording ? 'Stop Recording' : 'Start Recording'}
                 </button>
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg min-h-12">
-                {audioTranscript || "Your speech will appear here..."}
+              <div className="bg-gray-50 p-3 rounded-lg min-h-[100px]">
+                {audioTranscript || "Speech transcription will appear here..."}
               </div>
             </div>
             
@@ -461,30 +502,26 @@ const EmotionAnalysisPage = () => {
               </button>
               <button
                 onClick={submitForAnalysis}
-                disabled={isLoading}
-                className={`px-6 py-2 rounded-lg flex items-center ${
+                disabled={isLoading || (!userText && !audioTranscript && !emotion)}
+                className={`px-6 py-2 rounded-lg ${
                   isLoading || (!userText && !audioTranscript && !emotion) 
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                    : 'bg-teal-500 hover:bg-teal-600 text-white'
+                    ? 'bg-gray-300 cursor-not-allowed' 
+                    : 'bg-teal-500 hover:bg-teal-600 text-white cursor-pointer'
                 }`}
               >
                 {isLoading ? 'Analyzing...' : 'Submit'}
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Step 3: Results */}
         {step === 3 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-xl shadow-md"
-          >
+          <div className="bg-white p-8 rounded-xl shadow-md">
             <h2 className="text-xl font-semibold mb-6">Your Wellness Recommendations</h2>
             
             <div className="mb-8 p-4 bg-blue-50 rounded-lg">
-              <h3 className="font-medium text-blue-800 mb-2">Analysis</h3>
+              <h3 className="font-medium text-blue-800 mb-2">Emotional Analysis</h3>
               <p className="text-gray-700">{aiResponse}</p>
             </div>
             
@@ -509,33 +546,36 @@ const EmotionAnalysisPage = () => {
             
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Music className="mr-2 text-yellow-500" /> Music Suggestions
+                <Music className="mr-2 text-yellow-500" /> Music Recommendations
               </h3>
-              <div className="flex flex-wrap gap-2">
-                {getMusicRecommendations().map((genre, index) => (
-                  <span key={index} className="bg-gray-100 px-3 py-1 rounded-full text-sm">
-                    {genre}
-                  </span>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {spotifyRecommendations.map((item, index) => (
+                  <a 
+                    key={index} 
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 block"
+                  >
+                    <h4 className="font-semibold text-green-600 truncate">{item.name}</h4>
+                    <p className="text-sm text-gray-500 mt-1 truncate">{item.genre}</p>
+                    <div className="mt-2 flex items-center text-xs text-green-700">
+                      <Music className="mr-1 h-3 w-3" /> Open in Spotify
+                    </div>
+                  </a>
                 ))}
               </div>
             </div>
             
             <div className="mt-8 flex justify-center">
               <button
-                onClick={() => {
-                  setStep(1);
-                  setEmotion(null);
-                  setUserText('');
-                  setAiResponse('');
-                  setImage(null);
-                  setAudioTranscript('');
-                }}
+                onClick={resetApp}
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
                 Start Over
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>
