@@ -18,7 +18,7 @@ const EmotionAnalysisPage = () => {
   const [cameraError, setCameraError] = useState(null);
   const [recognitionError, setRecognitionError] = useState(null);
   const [showCanvas, setShowCanvas] = useState(false);
-  
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -30,43 +30,59 @@ const EmotionAnalysisPage = () => {
     const initSpeechRecognition = () => {
       try {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-          const recognition = new SpeechRecognition();
-          recognition.continuous = true;
-          recognition.interimResults = true;
-          recognition.lang = 'en-US';
-          
-          recognition.onresult = (event) => {
-            let finalTranscript = '';
-            let interimTranscript = '';
-            
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-              const transcript = event.results[i][0].transcript;
-              if (event.results[i].isFinal) {
-                finalTranscript += transcript + ' ';
-              } else {
-                interimTranscript += transcript;
-              }
-            }
-            
-            if (finalTranscript) {
-              setAudioTranscript(prev => prev + finalTranscript);
-            }
-          };
-          
-          recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-            setIsRecording(false);
-            setRecognitionError(event.error);
-          };
-          
-          recognitionRef.current = recognition;
-        } else {
-          setRecognitionError("Speech recognition not supported in this browser");
+        if (!SpeechRecognition) {
+          setRecognitionError("Speech recognition is not supported in this browser.");
+          console.error("SpeechRecognition API not supported");
+          return;
         }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.interimResults = true; // Ensure interim results are enabled
+
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          let interimTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + ' ';
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          console.log("Speech result - Final:", finalTranscript, "Interim:", interimTranscript);
+          if (finalTranscript) {
+            setAudioTranscript(prev => prev + finalTranscript);
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+          setIsRecording(false);
+          setRecognitionError(`Speech recognition error: ${event.error}`);
+        };
+
+        recognition.onstart = () => {
+          console.log("Speech recognition started");
+        };
+
+        recognition.onend = () => {
+          console.log("Speech recognition ended");
+          if (isRecording) {
+            recognition.start(); // Restart if still recording
+          }
+        };
+
+        recognitionRef.current = recognition;
+        console.log("Speech recognition initialized");
       } catch (error) {
         console.error("Error initializing speech recognition:", error);
-        setRecognitionError(error.message);
+        setRecognitionError(`Failed to initialize speech recognition: ${error.message}`);
       }
     };
 
@@ -75,29 +91,39 @@ const EmotionAnalysisPage = () => {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
+          console.log("Speech recognition stopped on cleanup");
         } catch (e) {
-          console.error("Error stopping recognition:", e);
+          console.error("Error stopping recognition on cleanup:", e);
         }
       }
-      
+
       if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [videoStream]);
 
   // Toggle recording state
   const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      setRecognitionError("Speech recognition not initialized.");
+      return;
+    }
+
     if (isRecording) {
-      recognitionRef.current?.stop();
+      recognitionRef.current.stop();
       setIsRecording(false);
+      console.log("Recording stopped");
     } else {
       try {
-        recognitionRef.current?.start();
+        setAudioTranscript(''); // Clear transcript before starting
+        recognitionRef.current.start();
         setIsRecording(true);
         setRecognitionError(null);
+        console.log("Recording started");
       } catch (error) {
         console.error("Error starting recording:", error);
+        setIsRecording(false);
         setRecognitionError(`Could not start recording: ${error.message}`);
       }
     }
@@ -105,10 +131,16 @@ const EmotionAnalysisPage = () => {
 
   // Camera handling
   const startCamera = async () => {
+    if (!videoRef.current) {
+      setCameraError("Video element not initialized. Please wait and try again.");
+      console.error("Video ref is null");
+      return;
+    }
+
     try {
       setCameraError(null);
       setError(null);
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
           facingMode: 'user',
@@ -116,18 +148,20 @@ const EmotionAnalysisPage = () => {
           height: { ideal: 720 }
         }
       });
-      
+
       setVideoStream(stream);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play();
-        };
-      }
+
+      videoRef.current.srcObject = stream;
+      videoRef.current.onloadedmetadata = () => {
+        console.log("Video metadata loaded:", videoRef.current.videoWidth, videoRef.current.videoHeight);
+        videoRef.current.play().catch((err) => {
+          console.error("Error playing video:", err);
+          setCameraError("Failed to play video stream.");
+        });
+      };
     } catch (err) {
       console.error("Camera error:", err);
-      setCameraError(err.message);
+      setCameraError(`Camera access failed: ${err.message} (Code: ${err.name})`);
     }
   };
 
@@ -140,35 +174,45 @@ const EmotionAnalysisPage = () => {
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const video = videoRef.current;
-      
-      // Set canvas dimensions to match video
-      if (canvasRef.current) {
-        canvasRef.current.width = video.videoWidth;
-        canvasRef.current.height = video.videoHeight;
-        
-        const ctx = canvasRef.current.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height);
-        
-        const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
-        setImage(imageDataUrl);
-        setShowCanvas(true);
 
-        const base64Image = imageDataUrl.split(',')[1];
-        const detectedEmotion = await analyzeImageWithGemini(base64Image);
-        
-        if (detectedEmotion) {
-          setEmotion(detectedEmotion);
-          // Add text to the canvas
-          ctx.font = 'bold 24px Arial';
-          ctx.fillStyle = '#FF0000';
-          ctx.fillText(`Detected: ${detectedEmotion}`, 20, 40);
-        } else {
-          setEmotion(null);
-          setError("No clear emotion detected. Please ensure your face is visible.");
-        }
+      // Ensure canvas is available
+      if (!canvasRef.current) {
+        setError("Canvas element not found.");
+        return;
+      }
+
+      // Set canvas dimensions to match video
+      canvasRef.current.width = video.videoWidth || 640; // Fallback dimensions
+      canvasRef.current.height = video.videoHeight || 480;
+
+      const ctx = canvasRef.current.getContext('2d');
+      if (!ctx) {
+        setError("Unable to get canvas context.");
+        return;
+      }
+
+      ctx.drawImage(video, 0, 0, canvasRef.current.width, canvasRef.current.height);
+      console.log("Canvas drawn:", canvasRef.current.width, canvasRef.current.height);
+
+      const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
+      setImage(imageDataUrl);
+      setShowCanvas(true);
+
+      const base64Image = imageDataUrl.split(',')[1];
+      const detectedEmotion = await analyzeImageWithGemini(base64Image);
+
+      if (detectedEmotion) {
+        setEmotion(detectedEmotion);
+        ctx.font = 'bold 24px Arial';
+        ctx.fillStyle = '#FF0000';
+        ctx.fillText(`Detected: ${detectedEmotion}`, 20, 40);
+        console.log("Emotion detected:", detectedEmotion);
+      } else {
+        setEmotion(null);
+        setError("No clear emotion detected. Please ensure your face is visible.");
       }
     } catch (error) {
       console.error("Capture error:", error);
@@ -182,7 +226,7 @@ const EmotionAnalysisPage = () => {
   const analyzeImageWithGemini = async (base64Data) => {
     try {
       const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-      
+
       const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,16 +242,17 @@ const EmotionAnalysisPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("API Error:", errorData);
         throw new Error(`API error: ${errorData.error?.message || response.status}`);
       }
-      
+
       const data = await response.json();
+      console.log("API Response:", data);
       if (!data.candidates || !data.candidates[0]?.content?.parts?.length) {
         throw new Error("Invalid response format from Gemini API");
       }
-      
+
       const emotionText = data.candidates[0].content.parts[0].text.toLowerCase().trim();
-      // Extract just the emotion word (in case API returns more text)
       for (const emotion of EMOTIONS) {
         if (emotionText.includes(emotion)) {
           return emotion;
@@ -225,11 +270,11 @@ const EmotionAnalysisPage = () => {
   const submitForAnalysis = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const inputText = userText || audioTranscript || "";
       const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-      
+
       const promptText = `
 Analyze this emotional state:
 - Visual emotion: ${emotion || 'unknown'}
@@ -268,20 +313,18 @@ Provide a response in the following JSON format ONLY with no additional text:
         const errorData = await response.json();
         throw new Error(`API error: ${errorData.error?.message || response.status}`);
       }
-      
+
       const data = await response.json();
       if (!data.candidates || !data.candidates[0]?.content?.parts?.length) {
         throw new Error("Invalid response format from Gemini API");
       }
-      
+
       const responseText = data.candidates[0].content.parts[0].text;
-      
-      // Extract JSON content - handle potential text before/after JSON
       let jsonMatch = responseText.match(/(\{[\s\S]*\})/);
       if (!jsonMatch) {
         throw new Error("Could not find valid JSON in the response");
       }
-      
+
       const jsonString = jsonMatch[0];
       const result = JSON.parse(jsonString);
 
@@ -292,7 +335,7 @@ Provide a response in the following JSON format ONLY with no additional text:
         genre: result.musicGenres?.[i] || "General",
         url: `https://open.spotify.com/search/${encodeURIComponent(name)}`
       })));
-      
+
       setStep(3);
     } catch (error) {
       console.error("Analysis error:", error);
@@ -316,12 +359,12 @@ Provide a response in the following JSON format ONLY with no additional text:
     setCameraError(null);
     setRecognitionError(null);
     setShowCanvas(false);
-    
+
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop());
       setVideoStream(null);
     }
-    
+
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -329,9 +372,16 @@ Provide a response in the following JSON format ONLY with no additional text:
         console.error("Error stopping recognition:", e);
       }
     }
-    
+
     setIsRecording(false);
   };
+
+  // Ensure camera starts after videoRef is set
+  useEffect(() => {
+    if (videoRef.current && !videoStream) {
+      startCamera();
+    }
+  }, [videoRef.current, videoStream]);
 
   // UI rendering
   return (
@@ -382,34 +432,24 @@ Provide a response in the following JSON format ONLY with no additional text:
             <h2 className="text-xl font-semibold mb-6 flex items-center">
               <Camera className="mr-2" /> Capture Your Expression
             </h2>
-            
+
             <div className="mb-6">
-              {!videoStream ? (
-                <div className="bg-gray-100 aspect-video flex items-center justify-center rounded-lg">
-                  <button 
-                    onClick={startCamera}
-                    className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg flex items-center"
-                  >
-                    <Camera className="mr-2" /> Enable Camera
-                  </button>
-                </div>
-              ) : (
-                <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                  <video 
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className={`w-full h-full object-cover ${showCanvas ? 'hidden' : 'block'}`}
-                  />
-                  <canvas 
-                    ref={canvasRef}
-                    className={`w-full h-full object-cover ${showCanvas ? 'block' : 'hidden'}`}
-                  />
-                </div>
-              )}
+              <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <video 
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                  style={{ border: '2px solid red' }} // Debugging border
+                />
+                <canvas 
+                  ref={canvasRef}
+                  className={`w-full h-full object-cover ${showCanvas ? 'block' : 'hidden'}`}
+                />
+              </div>
             </div>
-            
+
             <div className="flex flex-col space-y-4">
               {videoStream && (
                 <button
@@ -420,7 +460,7 @@ Provide a response in the following JSON format ONLY with no additional text:
                   {isLoading ? 'Processing...' : 'Capture & Analyze'}
                 </button>
               )}
-              
+
               {showCanvas && (
                 <button
                   onClick={() => {
@@ -435,7 +475,7 @@ Provide a response in the following JSON format ONLY with no additional text:
                   Retake Photo
                 </button>
               )}
-              
+
               <button
                 onClick={() => setStep(2)}
                 disabled={isLoading}
@@ -451,7 +491,7 @@ Provide a response in the following JSON format ONLY with no additional text:
         {step === 2 && (
           <div className="bg-white p-8 rounded-xl shadow-md">
             <h2 className="text-xl font-semibold mb-6">Describe Your Feelings</h2>
-            
+
             {image && (
               <div className="mb-6 flex items-center justify-center">
                 <img 
@@ -466,7 +506,7 @@ Provide a response in the following JSON format ONLY with no additional text:
                 )}
               </div>
             )}
-            
+
             <div className="mb-6">
               <textarea
                 value={userText}
@@ -476,13 +516,14 @@ Provide a response in the following JSON format ONLY with no additional text:
                 rows={4}
               />
             </div>
-            
+
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Voice Input</span>
                 <button
                   onClick={toggleRecording}
                   className={`flex items-center text-sm ${isRecording ? 'text-red-500' : 'text-teal-600'}`}
+                  disabled={!recognitionRef.current}
                 >
                   <Mic className="mr-1 h-4 w-4" />
                   {isRecording ? 'Stop Recording' : 'Start Recording'}
@@ -492,7 +533,7 @@ Provide a response in the following JSON format ONLY with no additional text:
                 {audioTranscript || "Speech transcription will appear here..."}
               </div>
             </div>
-            
+
             <div className="flex justify-between">
               <button
                 onClick={() => setStep(1)}
@@ -519,12 +560,12 @@ Provide a response in the following JSON format ONLY with no additional text:
         {step === 3 && (
           <div className="bg-white p-8 rounded-xl shadow-md">
             <h2 className="text-xl font-semibold mb-6">Your Wellness Recommendations</h2>
-            
+
             <div className="mb-8 p-4 bg-blue-50 rounded-lg">
               <h3 className="font-medium text-blue-800 mb-2">Emotional Analysis</h3>
               <p className="text-gray-700">{aiResponse}</p>
             </div>
-            
+
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <Heart className="mr-2 text-red-500" /> Breathing Exercises
@@ -543,7 +584,7 @@ Provide a response in the following JSON format ONLY with no additional text:
                 ))}
               </div>
             </div>
-            
+
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <Music className="mr-2 text-yellow-500" /> Music Recommendations
@@ -566,7 +607,7 @@ Provide a response in the following JSON format ONLY with no additional text:
                 ))}
               </div>
             </div>
-            
+
             <div className="mt-8 flex justify-center">
               <button
                 onClick={resetApp}
