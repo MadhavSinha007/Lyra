@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import NavBar from './components/NavBar';
-import HeroSection from './components/HeroSection';
-import FeaturesSection from './components/FeatureSection';
-import TestimonialSection from './components/TestimonialSection';
-import CTASection from './components/CTASection';
-import Footer from './components/Footer';
+import NavBar from './Landingcomponents/NavBar';
+import HeroSection from './Landingcomponents/HeroSection';
+import FeaturesSection from './Landingcomponents/FeatureSection';
+import TestimonialSection from './Landingcomponents/TestimonialSection';
+import CTASection from './Landingcomponents/CTASection';
+import Footer from './Landingcomponents/Footer';
 
 const LyraLandingPage = () => {
   // Smooth scroll behavior

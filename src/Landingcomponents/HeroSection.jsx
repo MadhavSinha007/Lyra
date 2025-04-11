@@ -280,67 +280,41 @@ const HeroSection = () => {
       <div className="absolute w-80 h-80 rounded-full bg-teal-400/10 filter blur-[100px] top-1/4 -left-40 animate-pulse-slow"></div>
       <div className="absolute w-80 h-80 rounded-full bg-cyan-400/10 filter blur-[100px] bottom-1/4 -right-40 animate-pulse-slow animation-delay-2000"></div>
       
-      {/* Content Container */}
+      {/* Content Container - Now without background box */}
       <div 
         className={`container relative z-10 mx-auto px-4 transition-all duration-1000 ease-out transform ${
           isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
       >
-        {/* Floating Card */}
-        <div 
-          className="max-w-4xl mx-auto backdrop-blur-xl bg-slate-800/50 p-12 rounded-3xl shadow-2xl border border-teal-500/20 transform transition-all duration-500 hover:border-teal-400/40"
-          style={{ 
-            transform: isHovering 
-              ? `perspective(1000px) rotateX(${mousePosition.y * -5}deg) rotateY(${mousePosition.x * 5}deg) scale(1.02)` 
-              : 'perspective(1000px) rotateX(0) rotateY(0) scale(1)',
-            transformStyle: 'preserve-3d',
-            boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.15)'
-          }}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          {/* Shine Effect */}
-          <div className="absolute inset-0 rounded-3xl overflow-hidden">
-            <div className="absolute inset-0 opacity-20 bg-gradient-to-tr from-transparent via-teal-400/30 to-transparent pointer-events-none" 
-                 style={{ 
-                   transform: `translateX(${mousePosition.x * 100}px) translateY(${mousePosition.y * 100}px)`,
-                   transition: 'transform 0.2s ease-out'
-                 }}></div>
-          </div>
+        {/* Title with Animation */}
+        <div className="relative mb-8">
+          <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-cyan-400 mb-4 leading-tight tracking-tight">
+            <span className="block transform animate-float delay-100">Lyra</span>
+            <span className="block text-4xl font-medium text-slate-200 mt-4 transform animate-float delay-300">Your Mental Health Companion</span>
+          </h1>
           
-          {/* Inner glow */}
-          <div className="absolute inset-0 rounded-3xl pointer-events-none border border-teal-500/10"></div>
-          
-          {/* Title with Animation */}
-          <div className="relative mb-8">
-            <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-cyan-400 mb-4 leading-tight tracking-tight">
-              <span className="block transform animate-float delay-100">Lyra</span>
-              <span className="block text-4xl font-medium text-slate-200 mt-4 transform animate-float delay-300">Your Mental Health Companion</span>
-            </h1>
-            
-            {/* Animated Underline */}
-            <div className="h-1 w-40 mx-auto bg-gradient-to-r from-teal-400/80 via-cyan-400/80 to-teal-400/80 rounded-full transform animate-width-expand mt-6"></div>
-          </div>
-          
-          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed transform animate-fade-in delay-500">
-            Discover a better way to track and improve your emotional well-being with AI-powered insights and personalized care.
-          </p>
-          
-          {/* Animated Button */}
-          <div className="relative inline-block transform animate-fade-in delay-700 group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full blur opacity-70 group-hover:opacity-90 transition-all duration-500 animate-pulse-slow"></div>
-            <a href="/analysis" className="relative">
-              <button className="relative bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold px-12 py-4 rounded-full text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-teal-500/30 group-hover:shadow-cyan-400/30 overflow-hidden">
-                <span className="relative z-10 flex items-center justify-center gap-2 tracking-wide">
-                  <span>Get Started</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1 transform transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform scale-x-0 group-hover:scale-x-100 origin-left"></div>
-              </button>
-            </a>
-          </div>
+          {/* Animated Underline */}
+          <div className="h-1 w-40 mx-auto bg-gradient-to-r from-teal-400/80 via-cyan-400/80 to-teal-400/80 rounded-full transform animate-width-expand mt-6"></div>
+        </div>
+        
+        <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed transform animate-fade-in delay-500">
+          Discover a better way to track and improve your emotional well-being with AI-powered insights and personalized care.
+        </p>
+        
+        {/* Animated Button */}
+        <div className="relative inline-block transform animate-fade-in delay-700 group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full blur opacity-70 group-hover:opacity-90 transition-all duration-500 animate-pulse-slow"></div>
+          <a href="/analysis" className="relative">
+            <button className="relative bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold px-12 py-4 rounded-full text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-teal-500/30 group-hover:shadow-cyan-400/30 overflow-hidden">
+              <span className="relative z-10 flex items-center justify-center gap-2 tracking-wide">
+                <span>Get Started</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1 transform transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform scale-x-0 group-hover:scale-x-100 origin-left"></div>
+            </button>
+          </a>
         </div>
       </div>
       
