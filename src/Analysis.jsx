@@ -10,7 +10,6 @@ import useCamera from './components/useCamera';
 import { analyzeImageWithGemini, submitTextForAnalysis, EMOTIONS } from './components/geminiApi';
 
 const EmotionAnalysisPage = () => {
-  // Main state
   const [step, setStep] = useState(1);
   const [emotion, setEmotion] = useState(null);
   const [userText, setUserText] = useState('');
@@ -20,7 +19,6 @@ const EmotionAnalysisPage = () => {
   const [breathingExercises, setBreathingExercises] = useState([]);
   const [error, setError] = useState(null);
 
-  // Custom hooks
   const { 
     isRecording, 
     audioTranscript, 
@@ -42,14 +40,12 @@ const EmotionAnalysisPage = () => {
     setCameraError
   } = useCamera();
 
-  // Start camera when component mounts
   useEffect(() => {
     if (step === 1 && videoRef.current && !videoStream) {
       startCamera();
     }
   }, [step, videoRef.current, videoStream]);
 
-  // Image capture and emotion analysis
   const captureAndPredict = async () => {
     setIsLoading(true);
     setError(null);
@@ -67,11 +63,10 @@ const EmotionAnalysisPage = () => {
 
       if (detectedEmotion) {
         setEmotion(detectedEmotion);
-        
-        // Add emotion label to the canvas
+
         const ctx = canvasRef.current.getContext('2d');
         ctx.font = 'bold 24px Arial';
-        ctx.fillStyle = '#FF0000';
+        ctx.fillStyle = '#FFFFFF';
         ctx.fillText(`Detected: ${detectedEmotion}`, 20, 40);
       } else {
         setEmotion(null);
@@ -84,7 +79,6 @@ const EmotionAnalysisPage = () => {
     }
   };
 
-  // Text/voice analysis submission
   const submitForAnalysis = async () => {
     setIsLoading(true);
     setError(null);
@@ -92,11 +86,11 @@ const EmotionAnalysisPage = () => {
     try {
       const inputText = userText || audioTranscript || "";
       const result = await submitTextForAnalysis(emotion, inputText, setError);
-      
+
       if (result) {
         setAiResponse(result.message);
         setBreathingExercises(result.breathingExercises || []);
-        
+
         if (result.spotifyRecommendations) {
           setSpotifyRecommendations(result.spotifyRecommendations);
         } else if (result.musicRecommendations) {
@@ -117,7 +111,6 @@ const EmotionAnalysisPage = () => {
     }
   };
 
-  // Reset application state
   const resetApp = () => {
     setStep(1);
     setEmotion(null);
@@ -132,71 +125,92 @@ const EmotionAnalysisPage = () => {
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop());
     }
-    
+
     startCamera();
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen w-full bg-black text-white">
       <div className="h-screen w-full flex flex-col overflow-hidden">
-        <Header />
-        
-        <ErrorDisplay 
-          error={error}
-          cameraError={cameraError}
-          recognitionError={recognitionError}
-        />
-        
-        <ProgressSteps currentStep={step} />
-        
-        <div className="flex-grow flex flex-col items-center justify-center p-4 w-full overflow-y-auto">
-          {step === 1 && (
-            <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">
-              <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Capture Your Emotion
-              </h2>
-              <CaptureStep 
-                videoRef={videoRef}
-                canvasRef={canvasRef}
-                isLoading={isLoading}
-                videoStream={videoStream}
-                showCanvas={showCanvas}
-                emotion={emotion}
-                captureAndPredict={captureAndPredict}
-                setShowCanvas={setShowCanvas}
-                goToNextStep={() => setStep(2)}
-              />
-            </div>
-          )}
-          
-          {step === 2 && (
-            <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-100">
-              <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Describe Your Feelings
-              </h2>
-              <DescribeStep 
-                image={image}
-                emotion={emotion}
-                userText={userText}
-                setUserText={setUserText}
-                audioTranscript={audioTranscript}
-                isRecording={isRecording}
-                toggleRecording={toggleRecording}
-                isLoading={isLoading}
-                submitForAnalysis={submitForAnalysis}
-                goToPrevStep={() => setStep(1)}
-              />
-            </div>
-          )}
-          
-          {step === 3 && (
-            <ResultsStep 
-              aiResponse={aiResponse}
-              breathingExercises={breathingExercises}
-              spotifyRecommendations={spotifyRecommendations}
-              resetApp={resetApp}
+        <Header className="bg-black border-b border-white/10" />
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="container mx-auto px-4 py-8">
+            {/* Error displays at the top */}
+            <ErrorDisplay 
+              error={error}
+              cameraError={cameraError}
+              recognitionError={recognitionError}
+              className="mb-6"
             />
-          )}
+
+            {/* Progress steps */}
+            <div className="mb-10">
+              <ProgressSteps currentStep={step} />
+            </div>
+
+            {/* Main content */}
+            <main className="w-full">
+              {[1, 2, 3].includes(step) && (
+                <div className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-xl overflow-hidden">
+                  <div className="p-6 md:p-8">
+                    {step === 1 && (
+                      <>
+                        <h2 className="text-3xl font-bold text-center mb-8 text-white">
+                          Capture Your Emotion
+                        </h2>
+                        <CaptureStep 
+                          videoRef={videoRef}
+                          canvasRef={canvasRef}
+                          isLoading={isLoading}
+                          videoStream={videoStream}
+                          showCanvas={showCanvas}
+                          emotion={emotion}
+                          captureAndPredict={captureAndPredict}
+                          setShowCanvas={setShowCanvas}
+                          goToNextStep={() => setStep(2)}
+                        />
+                      </>
+                    )}
+
+                    {step === 2 && (
+                      <>
+                        <h2 className="text-3xl font-bold text-center mb-8 text-white">
+                          Describe Your Feelings
+                        </h2>
+                        <DescribeStep 
+                          image={image}
+                          emotion={emotion}
+                          userText={userText}
+                          setUserText={setUserText}
+                          audioTranscript={audioTranscript}
+                          isRecording={isRecording}
+                          toggleRecording={toggleRecording}
+                          isLoading={isLoading}
+                          submitForAnalysis={submitForAnalysis}
+                          goToPrevStep={() => setStep(1)}
+                        />
+                      </>
+                    )}
+
+                    {step === 3 && (
+                      <>
+                        <h2 className="text-3xl font-bold text-center mb-8 text-white">
+                          Your Personalized Insights
+                        </h2>
+                        <ResultsStep 
+                          aiResponse={aiResponse}
+                          breathingExercises={breathingExercises}
+                          spotifyRecommendations={spotifyRecommendations}
+                          resetApp={resetApp}
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
         </div>
       </div>
     </div>

@@ -13,13 +13,13 @@ const CaptureStep = ({
   goToNextStep 
 }) => {
   return (
-    <div className="bg-white p-8 rounded-xl shadow-md">
+    <div className="bg-black text-white p-8 rounded-xl shadow-md border border-white">
       <h2 className="text-xl font-semibold mb-6 flex items-center">
         <Camera className="mr-2" /> Capture Your Expression
       </h2>
 
       <div className="mb-6">
-        <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+        <div className="relative aspect-video bg-white rounded-lg overflow-hidden">
           <video 
             ref={videoRef}
             autoPlay
@@ -39,7 +39,7 @@ const CaptureStep = ({
           <button
             onClick={captureAndPredict}
             disabled={isLoading}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:bg-blue-300"
+            className="px-6 py-2 bg-white text-black hover:bg-gray-200 rounded-lg disabled:opacity-50 transition"
           >
             {isLoading ? 'Processing...' : 'Capture & Analyze'}
           </button>
@@ -54,7 +54,7 @@ const CaptureStep = ({
                 ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
               }
             }}
-            className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+            className="px-6 py-2 bg-white text-black hover:bg-gray-200 rounded-lg transition"
           >
             Retake Photo
           </button>
@@ -63,7 +63,11 @@ const CaptureStep = ({
         <button
           onClick={goToNextStep}
           disabled={isLoading}
-          className={`px-6 py-2 rounded-lg ${emotion ? 'bg-teal-500 hover:bg-teal-600 text-white' : 'bg-gray-200 text-gray-500'}`}
+          className={`px-6 py-2 rounded-lg transition ${
+            emotion
+              ? 'bg-white text-black hover:bg-gray-200'
+              : 'bg-black text-white border border-white opacity-50 cursor-not-allowed'
+          }`}
         >
           {emotion ? 'Next' : 'Skip to Text Input'}
         </button>
@@ -73,4 +77,3 @@ const CaptureStep = ({
 };
 
 export default CaptureStep;
-
