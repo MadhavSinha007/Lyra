@@ -1,1 +1,89 @@
 @import "tailwindcss";
+
+/* Refined animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Font definitions for multiple languages */
+.font-\[Noto-Sans-Devanagari\] {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+}
+
+.font-\[Noto-Sans-Tamil\] {
+  font-family: 'Noto Sans Tamil', sans-serif;
+}
+
+.font-\[Noto-Sans-Telugu\] {
+  font-family: 'Noto Sans Telugu', sans-serif;
+}
+
+.font-\[Noto-Sans-JP\] {
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+.font-\[Noto-Sans-SC\] {
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+.font-\[Noto-Nastaliq-Urdu\] {
+  font-family: 'Noto Nastaliq Urdu', serif;
+}
+
+.font-\[Noto-Sans-Cyrillic\] {
+  font-family: 'Noto Sans Cyrillic', sans-serif;
+}
+
+.font-\[Noto-Sans-Bengali\] {
+  font-family: 'Noto Sans Bengali', sans-serif;
+}
+
+.font-\[Noto-Sans-Malayalam\] {
+  font-family: 'Noto Sans Malayalam', sans-serif;
+}
+
+.font-\[Noto-Sans-Gujarati\] {
+  font-family: 'Noto Sans Gujarati', sans-serif;
+}
+
+.font-\[Noto-Sans-KR\] {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.font-\[Noto-Sans-Arabic\] {
+  font-family: 'Noto Sans Arabic', sans-serif;
+}
+
+.font-\[Noto-Sans-Kannada\] {
+  font-family: 'Noto Sans Kannada', sans-serif;
+}
+
+/* RTL language support */
+[dir="rtl"] .font-\[Noto-Sans-Arabic\],
+[dir="rtl"] .font-\[Noto-Nastaliq-Urdu\] {
+  text-align: right;
+}
+
+/* Additional utility classes for animations */
+.transition-all {
+  transition-property: all;
+}
+
+.duration-500 {
+  transition-duration: 300ms;
+}
+
+.ease-in-out {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
