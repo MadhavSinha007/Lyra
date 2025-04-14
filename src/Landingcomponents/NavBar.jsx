@@ -105,8 +105,8 @@ const NavBar = () => {
           transition={{ duration: 0.5 }}
         >
           <img
-            src="public/logo.png" 
-            alt="Lyra Logo"
+            src="public/logo.png"
+            alt='.'
             className="h-8 w-8"
           />
           <span className="text-2xl font-bold">LYRA</span>
