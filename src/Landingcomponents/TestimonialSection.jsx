@@ -39,18 +39,16 @@ const testimonials = [
 
 const TestimonialSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(1); // 1 for forward, -1 for backward
+  const [direction, setDirection] = useState(1);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const timeoutRef = useRef(null);
 
-  // Reset timeout when currentIndex changes
   const resetTimeout = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
   };
 
-  // Handle next testimonial
   const nextTestimonial = () => {
     setDirection(1);
     setCurrentIndex((prevIndex) => 
@@ -58,7 +56,6 @@ const TestimonialSection = () => {
     );
   };
 
-  // Handle previous testimonial
   const prevTestimonial = () => {
     setDirection(-1);
     setCurrentIndex((prevIndex) => 
@@ -66,7 +63,6 @@ const TestimonialSection = () => {
     );
   };
 
-  // Auto-play functionality
   useEffect(() => {
     resetTimeout();
     if (isAutoPlaying) {
@@ -80,11 +76,9 @@ const TestimonialSection = () => {
     };
   }, [currentIndex, isAutoPlaying]);
 
-  // Pause on hover
   const handleMouseEnter = () => setIsAutoPlaying(false);
   const handleMouseLeave = () => setIsAutoPlaying(true);
 
-  // Variants for animation
   const variants = {
     enter: (direction) => ({
       x: direction > 0 ? 1000 : -1000,
@@ -101,16 +95,16 @@ const TestimonialSection = () => {
   };
 
   return (
-    <section id="testimonials" className="py-24 bg-gradient-to-br from-blue-50 to-teal-50">
+    <section id="testimonials" className="py-24 bg-black">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <span className="inline-block px-4 py-1 text-sm font-medium rounded-full bg-teal-100 text-teal-800 mb-4">
+          <span className="inline-block px-4 py-1 text-sm font-medium rounded-full bg-white/10 text-white mb-4">
             Testimonials
           </span>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-white mb-4">
             Trusted by Thousands
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">
             Hear from people who've transformed their mental well-being with Lyra
           </p>
         </div>
@@ -120,24 +114,22 @@ const TestimonialSection = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Navigation Arrows */}
           <button 
             onClick={prevTestimonial}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 bg-white p-3 rounded-full shadow-md hover:bg-gray-50 transition-all hover:scale-110"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 bg-white/10 p-3 rounded-full shadow-md hover:bg-white/20 transition-all hover:scale-110"
             aria-label="Previous testimonial"
           >
-            <ChevronLeft className="text-teal-600" size={24} />
+            <ChevronLeft className="text-white" size={24} />
           </button>
           
           <button 
             onClick={nextTestimonial}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 bg-white p-3 rounded-full shadow-md hover:bg-gray-50 transition-all hover:scale-110"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 bg-white/10 p-3 rounded-full shadow-md hover:bg-white/20 transition-all hover:scale-110"
             aria-label="Next testimonial"
           >
-            <ChevronRight className="text-teal-600" size={24} />
+            <ChevronRight className="text-white" size={24} />
           </button>
 
-          {/* Testimonial Cards */}
           <div className="relative h-96">
             <AnimatePresence custom={direction} initial={false}>
               <motion.div
@@ -151,25 +143,25 @@ const TestimonialSection = () => {
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
                 }}
-                className="absolute inset-0 bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center"
+                className="absolute inset-0 bg-black/50 rounded-2xl shadow-lg p-8 flex flex-col items-center border border-white/10"
               >
                 <div className="relative mb-6">
                   <img
                     src={testimonials[currentIndex].avatar}
                     alt={testimonials[currentIndex].name}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-md"
                   />
-                  <div className="absolute -bottom-2 -right-2 bg-teal-500 rounded-full p-2">
+                  <div className="absolute -bottom-2 -right-2 bg-white/20 rounded-full p-2">
                     <Quote className="text-white" size={16} />
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                <h3 className="text-xl font-semibold text-white mb-1">
                   {testimonials[currentIndex].name}
                 </h3>
-                <p className="text-teal-600 mb-6">{testimonials[currentIndex].role}</p>
+                <p className="text-white/80 mb-6">{testimonials[currentIndex].role}</p>
                 
-                <p className="text-gray-600 text-center mb-8 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-white/80 text-center mb-8 max-w-2xl mx-auto leading-relaxed">
                   "{testimonials[currentIndex].quote}"
                 </p>
                 
@@ -177,7 +169,7 @@ const TestimonialSection = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star 
                       key={i} 
-                      className={`h-5 w-5 ${i < testimonials[currentIndex].rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                      className={`h-5 w-5 ${i < testimonials[currentIndex].rating ? 'text-white fill-current' : 'text-white/30'}`}
                     />
                   ))}
                 </div>
@@ -185,7 +177,6 @@ const TestimonialSection = () => {
             </AnimatePresence>
           </div>
 
-          {/* Dots indicator */}
           <div className="flex justify-center mt-8 space-x-2">
             {testimonials.map((_, index) => (
               <button
@@ -194,7 +185,7 @@ const TestimonialSection = () => {
                   setDirection(index > currentIndex ? 1 : -1);
                   setCurrentIndex(index);
                 }}
-                className={`w-3 h-3 rounded-full transition-all ${index === currentIndex ? 'bg-teal-600 w-6' : 'bg-gray-300'}`}
+                className={`w-3 h-3 rounded-full transition-all ${index === currentIndex ? 'bg-white w-6' : 'bg-white/30'}`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}

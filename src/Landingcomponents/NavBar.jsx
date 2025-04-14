@@ -21,15 +21,15 @@ const NavBar = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled 
-        ? 'bg-white/90 backdrop-blur-lg shadow-sm border-b border-teal-100/50' 
-        : 'bg-white/80 backdrop-blur-md'
+        ? 'bg-black/90 backdrop-blur-lg shadow-sm border-b border-white/10' 
+        : 'bg-black/80 backdrop-blur-md'
     }`}>
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <motion.a 
             href="#"
-            className="text-2xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent"
+            className="text-2xl font-bold text-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -43,7 +43,7 @@ const NavBar = () => {
               <motion.a
                 key={item.name}
                 href={item.href}
-                className="relative text-slate-600 hover:text-teal-600 transition-colors font-medium text-sm"
+                className="relative text-white/80 hover:text-white transition-colors font-medium text-sm group"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
@@ -52,7 +52,7 @@ const NavBar = () => {
                 }}
               >
                 {item.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-teal-500 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
               </motion.a>
             ))}
 
@@ -62,14 +62,13 @@ const NavBar = () => {
               transition={{ delay: 0.5 }}
             >
               <a href="/analysis" target='_blank' rel="noopener noreferrer">
-                <button className="relative overflow-hidden group bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-5 py-2 rounded-full hover:shadow-lg hover:shadow-teal-200 transition-all duration-300">
+                <button className="relative overflow-hidden group bg-white text-black px-5 py-2 rounded-full hover:bg-white/90 transition-all duration-300">
                   <span className="relative z-10 flex items-center">
                     <span>Get Started</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transform transition-transform group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
                   </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                 </button>
               </a>
             </motion.div>
@@ -77,7 +76,7 @@ const NavBar = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden text-slate-600 focus:outline-none"
+            className="md:hidden text-white focus:outline-none"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -103,7 +102,7 @@ const NavBar = () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="block px-3 py-2 rounded-md text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
+                className="block px-3 py-2 rounded-md text-white/80 hover:bg-white/10 hover:text-white transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
@@ -116,7 +115,7 @@ const NavBar = () => {
               className="block mt-4"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-5 py-2 rounded-full hover:shadow-lg hover:shadow-teal-200 transition-all duration-300">
+              <button className="w-full bg-white text-black px-5 py-2 rounded-full hover:bg-white/90 transition-all duration-300">
                 Get Started
               </button>
             </a>

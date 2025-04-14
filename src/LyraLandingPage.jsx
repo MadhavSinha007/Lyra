@@ -56,7 +56,8 @@ const LyraLandingPage = () => {
         whileHover={{ opacity: 1, scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-8 right-8 bg-gradient-to-br from-teal-500 to-cyan-600 text-white p-3 rounded-full shadow-lg z-40"
+        className="fixed bottom-8 right-8 bg-white text-black p-3 rounded-full shadow-lg z-40 hover:bg-black hover:text-white transition
+"
         aria-label="Back to top"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

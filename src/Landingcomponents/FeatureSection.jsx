@@ -14,7 +14,6 @@ const FeatureModal = ({ feature, onClose }) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      {/* Blurred overlay */}
       <motion.div
         initial={{ backdropFilter: 'blur(0px)' }}
         animate={{ backdropFilter: 'blur(8px)' }}
@@ -24,13 +23,12 @@ const FeatureModal = ({ feature, onClose }) => {
         onClick={onClose}
       />
       
-      {/* Modal content */}
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className={`relative z-50 max-w-2xl w-full rounded-2xl p-8 shadow-2xl bg-gradient-to-br ${feature.color} border border-white/10`}
+        className="relative z-50 max-w-2xl w-full rounded-2xl p-8 shadow-2xl bg-black/80 border border-white/10"
       >
         <button
           onClick={onClose}
@@ -43,9 +41,9 @@ const FeatureModal = ({ feature, onClose }) => {
           <div className="flex items-center justify-center">
             <div className="relative w-32 h-32 flex items-center justify-center">
               <div className="absolute inset-0 bg-white/10 rounded-full blur-lg"></div>
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-black/5 rounded-full border border-white/5"></div>
+              <div className="absolute inset-0 bg-white/5 rounded-full border border-white/5"></div>
               <feature.icon 
-                className={`relative z-10 ${feature.iconColor} drop-shadow-lg`} 
+                className="relative z-10 text-white drop-shadow-lg" 
                 size={60} 
               />
             </div>
@@ -53,10 +51,10 @@ const FeatureModal = ({ feature, onClose }) => {
           
           <div className="flex-1">
             <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
-            <p className="text-slate-200 mb-6">{feature.description}</p>
+            <p className="text-white/80 mb-6">{feature.description}</p>
             <div className="bg-white/5 p-4 rounded-lg mb-6">
               <h4 className="font-semibold text-white mb-2">How it works:</h4>
-              <ul className="list-disc list-inside text-slate-300 space-y-1">
+              <ul className="list-disc list-inside text-white/70 space-y-1">
                 <li>Advanced AI analyzes your input</li>
                 <li>Real-time emotional pattern detection</li>
                 <li>Personalized recommendations</li>
@@ -84,12 +82,11 @@ const FeaturesSection = () => {
       controls.start("visible");
     }
 
-    // GSAP scroll animations
     gsap.fromTo(
       sectionRef.current,
-      { backgroundColor: 'rgb(15 23 42)' },
+      { backgroundColor: 'rgb(0, 0, 0)' },
       {
-        backgroundColor: 'rgb(2 6 23)',
+        backgroundColor: 'rgb(10, 10, 10)',
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top bottom",
@@ -99,7 +96,6 @@ const FeaturesSection = () => {
       }
     );
 
-    // 3D tilt effect on hover
     const cards = document.querySelectorAll('.feature-card-3d');
     cards.forEach(card => {
       card.addEventListener('mousemove', (e) => {
@@ -132,7 +128,6 @@ const FeaturesSection = () => {
       });
     });
 
-    // Floating animation for icons
     gsap.to(".floating-icon", {
       y: 10,
       duration: 3,
@@ -148,24 +143,24 @@ const FeaturesSection = () => {
       icon: Brain,
       title: "Sentiment Analysis",
       description: "Our AI analyzes your journal entries to detect emotional patterns and provide insights. Get detailed reports on your mood trends over time.",
-      color: "from-teal-900/80 to-slate-900/80",
-      iconColor: "text-teal-400",
+      color: "bg-black/80",
+      iconColor: "text-white",
       extendedInfo: "Our sentiment analysis goes beyond simple positive/negative detection. Using advanced NLP techniques, we can identify subtle emotional states and provide actionable insights."
     },
     {
       icon: Heart,
       title: "Breathing Exercises",
       description: "Personalized breathing techniques recommended based on your stress levels. Real-time biofeedback helps you master each technique.",
-      color: "from-blue-900/80 to-slate-900/80",
-      iconColor: "text-blue-400",
+      color: "bg-black/80",
+      iconColor: "text-white",
       extendedInfo: "Choose from 12 different breathing techniques tailored to your current state. Our system adapts to your progress and suggests new exercises as you improve."
     },
     {
       icon: Music,
       title: "Music Recommendations",
       description: "Curated Spotify playlists tailored to your current mood and preferences. Updated in real-time as your emotional state changes.",
-      color: "from-cyan-900/80 to-slate-900/80",
-      iconColor: "text-cyan-400",
+      color: "bg-black/80",
+      iconColor: "text-white",
       extendedInfo: "Our music engine analyzes thousands of tracks to find the perfect match for your current emotional state. The more you use it, the better it gets at predicting your preferences."
     }
   ];
@@ -210,7 +205,7 @@ const FeaturesSection = () => {
   return (
     <section 
       id="features" 
-      className="py-20 bg-slate-900 text-white transition-colors duration-1000 overflow-hidden"
+      className="py-20 bg-black text-white transition-colors duration-1000 overflow-hidden"
       ref={sectionRef}
     >
       <div className="container mx-auto px-4">
@@ -221,7 +216,7 @@ const FeaturesSection = () => {
           className="text-center mb-16 relative"
         >
           <motion.span 
-            className="inline-block px-3 py-1 text-sm font-medium rounded-full bg-teal-900/50 text-teal-300 mb-4"
+            className="inline-block px-3 py-1 text-sm font-medium rounded-full bg-white/10 text-white mb-4"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3 }}
@@ -229,7 +224,7 @@ const FeaturesSection = () => {
             Features
           </motion.span>
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent"
+            className="text-4xl md:text-5xl font-bold mb-4 text-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -237,7 +232,7 @@ const FeaturesSection = () => {
             Personalized Mental Wellness
           </motion.h2>
           <motion.p 
-            className="text-xl text-slate-300 max-w-3xl mx-auto"
+            className="text-xl text-white/80 max-w-3xl mx-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -260,23 +255,22 @@ const FeaturesSection = () => {
               className="perspective-1000"
             >
               <div
-                className={`feature-card-3d bg-gradient-to-br ${feature.color} p-8 rounded-2xl shadow-2xl border border-slate-700/50 transition-all duration-500 relative overflow-hidden h-full`}
+                className={`feature-card-3d bg-black/80 p-8 rounded-2xl shadow-2xl border border-white/10 transition-all duration-500 relative overflow-hidden h-full`}
                 style={{
                   transformStyle: 'preserve-3d',
                   backdropFilter: 'blur(8px)',
                   boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
                 }}
               >
-                {/* Inner content */}
                 <div className="relative z-10 h-full flex flex-col">
                   <motion.div
                     variants={iconVariants}
                     className="icon-container relative mb-6 mx-auto w-20 h-20 flex items-center justify-center floating-icon"
                   >
                     <div className="absolute inset-0 bg-white/10 rounded-full blur-md scale-110"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-black/5 rounded-full border border-white/5"></div>
+                    <div className="absolute inset-0 bg-white/5 rounded-full border border-white/5"></div>
                     <feature.icon 
-                      className={`relative z-10 ${feature.iconColor} drop-shadow-lg`} 
+                      className="relative z-10 text-white drop-shadow-lg" 
                       size={40} 
                     />
                   </motion.div>
@@ -284,15 +278,14 @@ const FeaturesSection = () => {
                   <h3 className="text-xl font-semibold mb-3 text-white">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-300 mb-6">
+                  <p className="text-white/80 mb-6">
                     {feature.description}
                   </p>
                   
-                  {/* 3D button */}
                   <div className="mt-auto">
                     <button 
                       onClick={() => setSelectedFeature(feature)}
-                      className="px-4 py-2 bg-gradient-to-r from-white/10 to-white/5 border border-white/10 rounded-lg text-white backdrop-blur-sm hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-teal-500/20 transform hover:-translate-y-1"
+                      className="px-4 py-2 bg-white/10 border border-white/10 rounded-lg text-white backdrop-blur-sm hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-white/20 transform hover:-translate-y-1"
                     >
                       Learn more
                     </button>
@@ -304,7 +297,6 @@ const FeaturesSection = () => {
         </motion.div>
       </div>
 
-      {/* Modal */}
       <AnimatePresence>
         {selectedFeature && (
           <FeatureModal 
@@ -314,7 +306,6 @@ const FeaturesSection = () => {
         )}
       </AnimatePresence>
 
-      {/* Custom Styles */}
       <style jsx global>{`
         .perspective-1000 {
           perspective: 1000px;
