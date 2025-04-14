@@ -4,7 +4,7 @@ const LYRALoadingAnimation = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fadeState, setFadeState] = useState('in');
   const previousTextCycleRef = useRef(-1);
-  
+
   const phrases = [
     {
       text: "Your Personal Companion • LYRA",
@@ -114,17 +114,15 @@ const LYRALoadingAnimation = () => {
   };
 
   useEffect(() => {
-    const textChangeDuration = 2000; // Change text every 2 seconds
-    
+    const textChangeDuration = 2000;
     const textChangeInterval = setInterval(() => {
       setFadeState('out');
-      
       setTimeout(() => {
         setCurrentIndex(prev => getRandomIndex(prev, phrases.length));
         setFadeState('in');
       }, 300);
     }, textChangeDuration);
-    
+
     return () => clearInterval(textChangeInterval);
   }, [phrases.length]);
 
@@ -135,24 +133,33 @@ const LYRALoadingAnimation = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white px-4">
-      <div className="relative w-full max-w-2xl flex flex-col items-center justify-center">
+    <div className="flex items-center justify-center min-h-screen bg-black text-white px-4">
+      <div className="flex flex-col items-center justify-center text-center space-y-6">
+
+
+        {/* Logo */}
+        <img 
+          src="public/logo.png"
+          alt="LYRA Logo"
+          className="w-16 h-16 object-contain"
+        />
+
+
         {/* Language indicator */}
-        <div className="mb-6">
-          <div className="px-3 py-1 border border-white bg-transparent rounded-full text-xs tracking-wider uppercase">
-            {phrases[currentIndex].lang}
-          </div>
+        <div className="px-3 py-1 border border-white bg-transparent rounded-full text-xs tracking-wider uppercase">
+          {phrases[currentIndex].lang}
         </div>
+
         
         {/* Main animated text */}
-        <div className={`transition-all duration-300 ease-in-out ${getFadeClass()} text-center`}>
+        <div className={`transition-all duration-300 ease-in-out ${getFadeClass()}`}>
           <h1 className={`text-3xl md:text-4xl font-bold tracking-tight ${phrases[currentIndex].font}`}>
             {phrases[currentIndex].text}
           </h1>
         </div>
-        
-        {/* Subtle decorative elements */}
-        <div className="mt-12 flex space-x-4">
+
+        {/* Decorative dots */}
+        <div className="flex space-x-4 pt-6">
           {[...Array(3)].map((_, i) => (
             <div 
               key={i}
