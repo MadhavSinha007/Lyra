@@ -47,43 +47,43 @@ const NavBar = () => {
 
   const renderActionButton = (button, isMobile = false) => (
     <motion.div
-      key={button.name}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.5 }}
-      className={isMobile ? 'w-full mt-2' : 'ml-2'}
+    key={button.name}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ delay: 0.5 }}
+    className={isMobile ? 'w-full mt-2' : 'ml-2'}
+  >
+    <a
+      href={button.href}
+      target={['/analysis', '/chatbot'].includes(button.href) ? '_blank' : undefined}
+      rel={['/analysis', '/chatbot'].includes(button.href) ? 'noopener noreferrer' : undefined}
+      onClick={() => setMobileMenuOpen(false)}
     >
-      <a
-        href={button.href}
-        target={button.href === '/analysis' ? '_blank' : undefined}
-        rel={button.href === '/analysis' ? 'noopener noreferrer' : undefined}
-        onClick={() => setMobileMenuOpen(false)}
+      <button
+        className={`px-5 py-2 rounded-full transition-all duration-300 w-full ${
+          button.variant === 'primary'
+            ? 'bg-white text-black hover:bg-white/90'
+            : 'bg-transparent border border-white text-white hover:bg-white/10'
+        }`}
       >
-        <button
-          className={`px-5 py-2 rounded-full transition-all duration-300 w-full ${
-            button.variant === 'primary'
-              ? 'bg-white text-black hover:bg-white/90'
-              : 'bg-transparent border border-white text-white hover:bg-white/10'
-          }`}
-        >
-          {button.name}
-          {button.variant === 'primary' && (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 ml-1 inline transform transition-transform group-hover:translate-x-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          )}
-        </button>
-      </a>
-    </motion.div>
+        {button.name}
+        {button.variant === 'primary' && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 ml-1 inline transform transition-transform group-hover:translate-x-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        )}
+      </button>
+    </a>
+  </motion.div>
   );
 
   return (
@@ -98,14 +98,19 @@ const NavBar = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <motion.a
-            href="#"
-            className="text-2xl font-bold text-white"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            Lyra
-          </motion.a>
+          href="#"
+          className="flex items-center space-x-2 text-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <img
+            src="./src/assets/logo.png" // ← Replace this with your actual logo path
+            alt="Lyra Logo"
+            className="h-8 w-8"
+          />
+          <span className="text-2xl font-bold">LYRA</span>
+        </motion.a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">

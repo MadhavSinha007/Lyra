@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import NavBar from './Landingcomponents/NavBar';
 import HeroSection from './Landingcomponents/HeroSection';
@@ -6,21 +6,29 @@ import FeaturesSection from './Landingcomponents/FeatureSection';
 import TestimonialSection from './Landingcomponents/TestimonialSection';
 import CTASection from './Landingcomponents/CTASection';
 import Footer from './Landingcomponents/Footer';
+import LYRALoadingAnimation from './components/LYRALoading';
 
 const LyraLandingPage = () => {
-  // Smooth scroll behavior
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
+    // Smooth scroll behavior and scroll restoration
     if (typeof window !== 'undefined') {
-      // Remove default scroll behavior
       window.history.scrollRestoration = 'manual';
-      
-      // Smooth scroll polyfill for Safari
+
       if (!('scrollBehavior' in document.documentElement.style)) {
         import('smoothscroll-polyfill').then((smoothscroll) => {
           smoothscroll.polyfill();
         });
       }
     }
+
+    // Set loading to false after 10 seconds
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 10000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Scroll progress indicator
@@ -30,6 +38,10 @@ const LyraLandingPage = () => {
     damping: 30,
     restDelta: 0.001
   });
+
+  if (isLoading) {
+    return <LYRALoadingAnimation />;
+  }
 
   return (
     <div className="bg-white text-gray-900 font-sans antialiased overflow-x-hidden">
@@ -56,8 +68,7 @@ const LyraLandingPage = () => {
         whileHover={{ opacity: 1, scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-8 right-8 bg-white text-black p-3 rounded-full shadow-lg z-40 hover:bg-black hover:text-white transition
-"
+        className="fixed bottom-8 right-8 bg-white text-black p-3 rounded-full shadow-lg z-40 hover:bg-black hover:text-white transition"
         aria-label="Back to top"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
