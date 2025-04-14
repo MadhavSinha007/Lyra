@@ -139,8 +139,8 @@ const LYRALoadingAnimation = () => {
 
         {/* Logo */}
         <img 
-          src="public/logo.png"
-          alt="LYRA Logo"
+          src="/logo.png"
+          alt="LYRA"
           className="w-16 h-16 object-contain"
         />
 
