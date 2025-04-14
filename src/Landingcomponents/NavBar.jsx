@@ -105,7 +105,7 @@ const NavBar = () => {
           transition={{ duration: 0.5 }}
         >
           <img
-            src="./src/assets/logo.png" // ← Replace this with your actual logo path
+            src="public/logo.png" 
             alt="Lyra Logo"
             className="h-8 w-8"
           />
