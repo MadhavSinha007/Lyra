@@ -1,6 +1,6 @@
 # Lyra - Mental Health AI Companion
 
-![Lyra Chat](https://i.imgur.com/QqJaKdF.png)
+![Lyra Chat](./public/LinkedIn%20cover%20-%201.png)
 
 ## Overview
 
@@ -16,7 +16,7 @@ Lyra is a compassionate mental health companion powered by Google's Gemini Flash
 - 📷 **Image Analysis** - Upload images for additional emotional context
 - 🧘 **Breathing Exercises** - Receive guided breathing techniques tailored to your emotional state
 - 🎵 **Music Recommendations** - Get personalized music suggestions to match your mood
-- 🌓 **Dark/Light Mode** - Toggle between color themes for comfortable viewing
+- 🌓 **Dark Mode** - Dark color themes for comfortable viewing
 - 📱 **Responsive Design** - Works smoothly across desktop and mobile devices
 - 📝 **Markdown Support** - Rich text formatting in chat messages
 - ⚡ **Real-time Responses** - Fast, streaming AI responses
@@ -59,7 +59,7 @@ Lyra is a compassionate mental health companion powered by Google's Gemini Flash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+5. Open [http://localhost:](http://localhost:) in your browser to see the application.
 
 ## Deployment
 
@@ -70,16 +70,6 @@ The application is deployed on Vercel. To deploy your own instance:
 3. Create a new project in Vercel and import the repository
 4. Configure the environment variables in the Vercel dashboard
 5. Deploy
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## License
 
